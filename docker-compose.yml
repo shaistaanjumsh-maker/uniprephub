@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: uniprephub-app:latest
+    env_file:
+      - .env.production
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./:/var/www/html:cached
+      - ./storage:/var/www/html/storage:delegated
+    networks:
+      - appnet
+
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - appnet
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local

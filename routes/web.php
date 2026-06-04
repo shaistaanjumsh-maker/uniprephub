@@ -289,16 +289,3 @@ Route::get('/{any}', function () {
     ];
     return view('website', compact('app_setting'));
 })->where('any', '.*');
-
-// SPA Fallback Route for frontend history mode
-Route::get('/{any}', function () {
-    if (!file_exists(base_path('storage/installed'))) {
-        return redirect()->route('installer.welcome.index');
-    }
-    $setting = Setting::first();
-    $app_setting = [
-        'name' => $setting->app_name ?? config('app.name'),
-        'favicon' => $setting->faviconPath ?? '',
-    ];
-    return view('website', compact('app_setting'));
-})->where('any', '.*');
