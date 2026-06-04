@@ -17,11 +17,30 @@ RUN npm run build
 # ==========================
 # Stage 2 - Composer Install
 # ==========================
-FROM composer:2.7 AS php_deps
+FROM composer:2.7-alpine AS php_deps
 
 WORKDIR /var/www/html
 
+RUN apk add --no-cache \
+    icu-dev \
+    oniguruma-dev \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libwebp-dev \
+    zlib-dev
+
 COPY composer.json composer.lock ./
+
+RUN docker-php-ext-configure intl \
+    && docker-php-ext-configure gd --with-jpeg --with-freetype --with-webp \
+    && docker-php-ext-install \
+        pdo_mysql \
+        bcmath \
+        intl \
+        opcache \
+        gd
 
 RUN composer install \
     --no-dev \
@@ -55,13 +74,15 @@ RUN apk add --no-cache \
     libwebp-dev \
     zlib-dev
 
-RUN docker-php-ext-configure intl
+RUN docker-php-ext-configure intl \
+    && docker-php-ext-configure gd --with-jpeg --with-freetype --with-webp
 
 RUN docker-php-ext-install \
     pdo_mysql \
     bcmath \
     intl \
-    opcache
+    opcache \
+    gd
 
 WORKDIR /var/www/html
 
